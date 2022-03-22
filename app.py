@@ -5,8 +5,6 @@ import re
 from wordcloud import WordCloud
 from nltk.tokenize import word_tokenize
 
-nltk.download("punkt")
-
 st.set_page_config(page_title="ThermoFeeler", page_icon="🌡",
         layout="centered",
         initial_sidebar_state="auto")
