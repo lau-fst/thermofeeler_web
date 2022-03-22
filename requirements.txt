@@ -5,3 +5,6 @@ scikit-learn
 
 streamlit
 requests
+matplotlib
+wordcloud
+nltk
