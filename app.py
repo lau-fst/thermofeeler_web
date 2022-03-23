@@ -21,10 +21,10 @@ with st.spinner('Wait for it...'):
 st.success('Done!')
 
 col1, col2, col3, col4 = st.columns(4)
-col1.write(f"Total number of tweets retrieved : {response[1]['total']}")
-col2.write(f"Total number of negative tweets  : {response[1]['negative total']}")
-col3.write(f"Total number of neutral tweets : {response[1]['neutral total']}")
-col4.write(f"Total number of positive tweets : {response[1]['positive total']}")
+col1.write(f"Total number of tweets retrieved : {response[-1]['total']}")
+col2.write(f"Total number of negative tweets  : {response[-1]['negative total']}")
+col3.write(f"Total number of neutral tweets : {response[-1]['neutral total']}")
+col4.write(f"Total number of positive tweets : {response[-1]['positive total']}")
 
 
 def preproc_func(tweet):
@@ -40,7 +40,7 @@ def preproc_func(tweet):
           'nossas','nosso','nossos','num','numa','nós','o','os','para','pela','pelas','pelo','pelos',
           'por','qual','quando','que','quem','se','seja','sejam','sejamos','sem','serei','seremos',
           'seria','seriam','será','serão','seríamos','seu','seus','somos','sou','sua','suas','são',
-          'só','também','ah','q','g','oh','eh','vc','tbm','também','tambem','voceh','você','voce']
+          'só','também','ah','q','g','oh','eh','vc','tbm','também','tambem','voceh','você','voce','rt']
 
     tweet = tweet.lower() # lowercase
 
@@ -61,7 +61,7 @@ def preproc_func(tweet):
     return filtered_tweet
 
 preproc_tweets=[]
-for tweet in response[0]:
+for tweet in response[0][0]:
     preproc_tweets.append(preproc_func(tweet))
 
 lista_palavras=[]
@@ -72,7 +72,7 @@ string=' '.join(lista_palavras)
 
 
 fig, ax = plt.subplots(figsize=(20,6))
-ax.pie([response[1]['negative total'],response[1]['positive total'],response[1]['neutral total']],
+ax.pie([response[-1]['negative total'],response[-1]['positive total'],response[-1]['neutral total']],
         explode=[0.05,0.05,0.05],
         labels=['Negativo','Positivo','Neutro'],
         colors=['darkred','lightgreen','lightgray'],
