@@ -138,20 +138,22 @@ if query_in != "" :
 
             st.write("Para acessar a análise da semana passada inteira, pressione o botão abaixo")
             if st.button("Aqui"):
-                L = np.random.randint(-1,2,len(response[0][0]))
-                L = L.tolist()
-                df = pd.DataFrame(response[0][2],L).reset_index()
-                df['date'] = pd.to_datetime(df[0], format='%Y-%m-%d').dt.date
+                url = f"https://thermofeeler-6hn6fqkota-uc.a.run.app/predict_week?{query}=apple&max_results=20"
+                response_week = requests.get(url)
+
+                df = pd.DataFrame(response_week[0][2],response_week[1]).reset_index()
+                df['date'] = df[0].dt.strftime("%d/%m/%Y")
                 df = df.drop(columns=[0])
-                df.rename(columns={'index' : 'sentiment'}, inplace=True)
+
                 colors = ["#20B2AA","#FF4040","#FFD700","#00CD00","#FF9912", "#FF1493"]
                 fig, ax = plt.subplots(figsize=(20,3))
                 for i,date,color in zip(range(7), df.date.unique(),colors):
                     plt.subplot(1,6,i+1)
-                    sentiment_day = df[df['date'] == date]['sentiment']
-                    sns.kdeplot(sentiment_day, color=color)
-                    plt.xticks([-1,0,1])
+                    sentiment_day = df[df['date'] == date]['index']
+                    sns.histplot(sentiment_day, color=color, kde=True)
                     plt.ylabel('')
                     plt.xlabel(date)
+                    plt.yticks([0,5,10,15,20])
+                    plt.xticks([-1,0,1])
 
                 st.pyplot(fig)
