@@ -138,12 +138,15 @@ if query_in != "" :
 
             st.write("Para acessar a análise da semana passada inteira, pressione o botão abaixo")
             if st.button("Aqui"):
-                url = f"https://thermofeeler-6hn6fqkota-uc.a.run.app/predict_week?{query}=apple&max_results=20"
-                response_week = requests.get(url)
+                # url = f"https://thermofeeler-6hn6fqkota-uc.a.run.app/predict_week?{query}=apple&max_results=20"
+                # response_week = requests.get(url)
 
-                df = pd.DataFrame(response_week[0][2],response_week[1]).reset_index()
+                L=np.random.randint(-1,2,len(response[0][2]))
+
+                df = pd.DataFrame(response[0][2],L).reset_index()
                 df['date'] = df[0].dt.strftime("%d/%m/%Y")
                 df = df.drop(columns=[0])
+
 
                 colors = ["#20B2AA","#FF4040","#FFD700","#00CD00","#FF9912", "#FF1493"]
                 fig, ax = plt.subplots(figsize=(20,3))
@@ -157,3 +160,8 @@ if query_in != "" :
                     plt.xticks([-1,0,1])
 
                 st.pyplot(fig)
+                # st.bar_chart(chart_data)
+
+
+
+                # try it out with an other query : st.experimental_rerun()
