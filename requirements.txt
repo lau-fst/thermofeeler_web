@@ -8,3 +8,5 @@ requests
 matplotlib
 wordcloud
 nltk
+seaborn
+plotly
