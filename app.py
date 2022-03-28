@@ -7,18 +7,18 @@ from nltk.tokenize import word_tokenize
 import pandas as pd
 import numpy as np
 import seaborn as sns
+import plotly.figure_factory as ff
+import plotly.graph_objects as go
 
 
 st.set_page_config(page_title="ThermoFeeler", page_icon="🌡",
         layout="wide",
         initial_sidebar_state="auto")
 
-title = """<p style="font-family:'Tangerine'; color:Red; font-size:42px;">ThermoFeeler</p>"""
+title = """<p style="font-family:'Tangerine'; color:Red; font-size:52px;">ThermoFeeler</p>"""
 
 st.markdown(title, unsafe_allow_html=True)
-
-query=None
-
+query = None
 
 st.sidebar.markdown("""
     # Sobre
@@ -47,14 +47,13 @@ sidecol2.write('\n')
 sidecol1.image("https://avatars.githubusercontent.com/u/98071615?v=4")
 sidecol2.write('[Lauranne Fossat](https://github.com/lau-fst)')
 
-
 st.markdown("""Realize uma pesquisa no Twitter em português:""")
 query_in= st.text_input('Exemplo: Covid')
 
 if query_in != "" :
     query_words = query_in.split(' ')
 
-    if len(query_words) ==1:
+    if len(query_words) == 1:
         query = query_in
 
     if len(query_words) == 2:
@@ -63,7 +62,7 @@ if query_in != "" :
         possibility_1 = (f'"{query_words[0]} {query_words[1]}"')
         if col_1.button(possibility_1):
             query = (possibility_1)
-        possibility_2 = (f'"{query_words[0]}" E "{query_words[1]}"')
+        possibility_2 = (f'"{query_words[0]}" e "{query_words[1]}"')
         if col_2.button(possibility_2):
             query = query_in
 
@@ -73,20 +72,22 @@ if query_in != "" :
         possibility_1 = (f'"{query_words[0]} {query_words[1]} {query_words[2]}"')
         if col_1.button(possibility_1):
             query = possibility_1
-        possibility_2 = (f'"{query_words[0]} {query_words[1]}" E "{query_words[2]}"')
+        possibility_2 = (f'"{query_words[0]} {query_words[1]}" e "{query_words[2]}"')
         if col_2.button(possibility_2):
             query = (f'"{query_words[0]} {query_words[1]}" {query_words[2]}')
-        possibility_3 = (f'"{query_words[0]}" E "{query_words[1]} {query_words[2]}"')
+        possibility_3 = (f'"{query_words[0]}" e "{query_words[1]} {query_words[2]}"')
         if col_3.button(possibility_3):
             query = (f'{query_words[0]} "{query_words[1]} {query_words[2]}"')
-        possibility_4 = (f'"{query_words[0]}" E "{query_words[1]}" E "{query_words[2]}"')
+        possibility_4 = (f'"{query_words[0]}" e "{query_words[1]}" e "{query_words[2]}"')
         if col_4.button(possibility_4):
-            query = (f'{query_words[0]} {query_words[1]} {query_words[2]}')
+            query = query_in
 
     if len(query_words) > 3:
+        st.markdown("Sua consulta excede 3 palavras, se você deseja continuar, consulte a documentação do twitter api para realizar sua busca exatamente como você deseja.")
         query = query_in
 
     if query != None :
+
         with st.spinner('Buscando os tweets...'):
             url = f'https://thermofeeler-6hn6fqkota-uc.a.run.app/predict_query?query={query}&max_results=10'
             response= requests.get(url)
@@ -162,7 +163,6 @@ if query_in != "" :
                     autopct='%1.1f%%',
                     textprops={'fontsize':14})
 
-
             ax2.set_title(f"Dispositivos mais utilizados",loc='center',size=16,pad=10)
 
             ax2.pie([response[-1]['negative total'],response[-1]['positive total'],response[-1]['neutral total']],
@@ -182,7 +182,6 @@ if query_in != "" :
             wordcloud = WordCloud(background_color="white",colormap="Blues",
                                   width=600,height=130).generate(string)
 
-
             # set the word color to black
             wordcloud.recolor(color_func = black_color_func)
 
@@ -195,23 +194,40 @@ if query_in != "" :
             st.pyplot(fig)
 
             st.write("Para acessar a análise da semana passada inteira, pressione o botão abaixo")
-            if st.button("Aqui"):
-                url = f"https://thermofeeler-6hn6fqkota-uc.a.run.app/predict_week?{query}=apple&max_results=20"
-                response_week = requests.get(url)
 
-                df = pd.DataFrame(response_week[0][2],response_week[1]).reset_index()
-                df['date'] = df[0].dt.strftime("%d/%m/%Y")
+            if st.button("Aqui"):
+                max_results = 10
+                query_2 = query
+                url_2 = f"https://thermofeeler-6hn6fqkota-uc.a.run.app/predict_week?query={query_2}&max_results={max_results}"
+                tweets_week, predict_list = requests.get(url_2).json()
+
+                for index, value in enumerate(predict_list):
+                    if value == 0:
+                        predict_list[index] = -1
+                    elif value == 1:
+                        predict_list[index] = 0
+                    elif value == 2:
+                        predict_list[index] = 1
+
+                df = pd.DataFrame(tweets_week[2],predict_list).reset_index()
+                df['date'] = pd.to_datetime(df[0], format='%Y-%m-%d').dt.strftime("%d/%m/%Y")
                 df = df.drop(columns=[0])
 
-                colors = ["#20B2AA","#FF4040","#FFD700","#00CD00","#FF9912", "#FF1493"]
+                if max_results == 10 :
+                    y_ticks = [0,5,10]
+                elif max_results == 20 :
+                    y_ticks = [0,5,10,15,20]
+
+                colors = ["#ed6a5a","#eb6565",'#c24747',"#da3030","#ff2a00","#FF0101"]
                 fig, ax = plt.subplots(figsize=(20,3))
                 for i,date,color in zip(range(7), df.date.unique(),colors):
                     plt.subplot(1,6,i+1)
                     sentiment_day = df[df['date'] == date]['index']
-                    sns.histplot(sentiment_day, color=color, kde=True)
+                    sns.histplot(sentiment_day, color=color, binwidth=0.4)
                     plt.ylabel('')
                     plt.xlabel(date)
-                    plt.yticks([0,5,10,15,20])
+                    plt.yticks(y_ticks)
                     plt.xticks([-1,0,1])
+                    plt.xlim(-1.2, 1.2)
 
                 st.pyplot(fig)
