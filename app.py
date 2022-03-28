@@ -25,10 +25,10 @@ st.sidebar.markdown("""
     Este aplicativo web foi desenvolvido em dez dias como projeto final do bootcamp
     de Data Science do Le Wagon.
 
-    Após inserido o texto no campo de pesquisa, realizamos um _query_ na API do Twitter.
-    O resultado é enviado à nossa API hospedada no Google Cloud Platform,
-    a qual possui uma Rede Neural que realiza o preprocessamento dos tweets e prevê
-    o sentimento.
+    Após inserido o texto no campo de pesquisa, realizamos um _query_ na API do Twitter,
+    selecionando apenas tweets em português. O resultado é enviado à nossa API
+    hospedada no Google Cloud Platform, a qual possui uma Rede Neural que realiza
+    o preprocessamento dos tweets e prevê o sentimento.
     """)
 
 st.sidebar.markdown(f"""# Equipe""")
@@ -114,7 +114,8 @@ if query_in != "" :
                     'nossas','nosso','nossos','num','numa','nós','o','os','para','pela','pelas','pelo','pelos',
                     'por','qual','quando','que','quem','se','seja','sejam','sejamos','sem','serei','seremos',
                     'seria','seriam','será','serão','seríamos','seu','seus','somos','sou','sua','suas','são',
-                    'só','também','ah','q','g','oh','eh','vc','tbm','também','tambem','voceh','você','voce','rt']
+                    'só','também','ah','q','g','oh','eh','vc','tbm','também','tambem','voceh','você','voce','rt',
+                    'é','n','não','nao','pro','pra','tá','ta']
 
                 tweet = tweet.lower() # lowercase
 
@@ -144,27 +145,53 @@ if query_in != "" :
                     lista_palavras.append(word)
             string=' '.join(lista_palavras)
 
+            st.markdown('\n')
+            st.markdown('\n')
 
-            fig, ax = plt.subplots(figsize=(20,6))
-            ax.pie([response[-1]['negative total'],response[-1]['positive total'],response[-1]['neutral total']],
+            fig, (ax1,ax2) = plt.subplots(1,2,figsize=(20,6))
+            fig.suptitle(f"Os {response[-1]['total']} tweets mais recentes estão distribuídos da seguinte forma:",
+                         size=20,y=1.08)
+            plt.tight_layout(pad=60)
+
+            ax1.set_title(f"Distribuição de sentimentos",loc='center',size=16,pad=10)
+
+            ax1.pie([response[-1]['negative total'],response[-1]['positive total'],response[-1]['neutral total']],
                     explode=[0.05,0.05,0.05],
                     labels=['Negativo','Positivo','Neutro'],
                     colors=['darkred','lightgreen','lightgray'],
                     autopct='%1.1f%%',
-                    textprops={'fontsize': 14})
+                    textprops={'fontsize':14})
 
-            ax.set_title(f"Os {response[-1]['total']} tweets mais recentes estão distribuídos da seguinte forma:",
-                        size=16,pad=20,loc='center')
+
+            ax2.set_title(f"Dispositivos mais utilizados",loc='center',size=16,pad=10)
+
+            ax2.pie([response[-1]['negative total'],response[-1]['positive total'],response[-1]['neutral total']],
+                    explode=[0.05,0.05,0.05],
+                    labels=['Negativo','Positivo','Neutro'],
+                    colors=['darkred','lightgreen','lightgray'],
+                    autopct='%1.1f%%',
+                    textprops={'fontsize':14})
+
             st.pyplot(fig)
 
-            fig, ax = plt.subplots(figsize=(20,6))
-            word_cloud = WordCloud(background_color = 'white')
-            word_cloud.generate(string)
-            plt.imshow(word_cloud, interpolation='bilinear')
-            plt.title('As palavras que mais aparecem nesses tweets são:',
-                    size=20,pad=40,loc='center')
-            plt.axis("off")
+            fig, ax = plt.subplots(figsize=(10,3))
+            def black_color_func(word, font_size, position,orientation,random_state=None, **kwargs):
+                return("hsl(0,100%, 1%)")
 
+            # set width and height to higher quality, 3000 x 2000
+            wordcloud = WordCloud(background_color="white",colormap="Blues",
+                                  width=600,height=130).generate(string)
+
+
+            # set the word color to black
+            wordcloud.recolor(color_func = black_color_func)
+
+            # plot the wordcloud
+            plt.imshow(wordcloud,interpolation='lanczos')
+
+            # remove plot axes
+            plt.axis("off")
+            plt.margins(x=0, y=0)
             st.pyplot(fig)
 
             st.write("Para acessar a análise da semana passada inteira, pressione o botão abaixo")
