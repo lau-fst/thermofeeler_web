@@ -7,6 +7,8 @@ from nltk.tokenize import word_tokenize
 import pandas as pd
 import numpy as np
 import seaborn as sns
+import plotly.figure_factory as ff
+import plotly.graph_objects as go
 
 
 st.set_page_config(page_title="ThermoFeeler", page_icon="🌡",
@@ -138,15 +140,20 @@ if query_in != "" :
 
             st.write("Para acessar a análise da semana passada inteira, pressione o botão abaixo")
             if st.button("Aqui"):
-                # url = f"https://thermofeeler-6hn6fqkota-uc.a.run.app/predict_week?{query}=apple&max_results=20"
-                # response_week = requests.get(url)
+                url = f"https://thermofeeler-6hn6fqkota-uc.a.run.app/predict_week?query={query}&max_results=10"
+                tweets_week, predict_list = requests.get(url).json()
 
-                L=np.random.randint(-1,2,len(response[0][2]))
+                for index, value in enumerate(predict_list):
+                    if value == 0:
+                        predict_list[index] = -1
+                    elif value == 1:
+                        predict_list[index] = 0
+                    elif value == 2:
+                        predict_list[index] = 1
 
-                df = pd.DataFrame(response[0][2],L).reset_index()
-                df['date'] = df[0].dt.strftime("%d/%m/%Y")
+                df = pd.DataFrame(tweets_week[2],predict_list).reset_index()
+                df['date'] = pd.to_datetime(df[0], format='%Y-%m-%d').dt.strftime("%d/%m/%Y")
                 df = df.drop(columns=[0])
-
 
                 colors = ["#20B2AA","#FF4040","#FFD700","#00CD00","#FF9912", "#FF1493"]
                 fig, ax = plt.subplots(figsize=(20,3))
@@ -156,12 +163,26 @@ if query_in != "" :
                     sns.histplot(sentiment_day, color=color, kde=True)
                     plt.ylabel('')
                     plt.xlabel(date)
-                    plt.yticks([0,5,10,15,20])
+                    plt.yticks([0,5,10])
                     plt.xticks([-1,0,1])
 
                 st.pyplot(fig)
-                # st.bar_chart(chart_data)
 
+                # x1 = df[df['date'] == df['date'].unique()[0]]['index']
+                # # x2 = df[df['date'] == df['date'].unique()[1]]['index']
+                # # x3 = df[df['date'] == df['date'].unique()[2]]['index']
+                # # x4 = df[df['date'] == df['date'].unique()[3]]['index']
+                # # x5 = df[df['date'] == df['date'].unique()[4]]['index']
+                # # x6 = df[df['date'] == df['date'].unique()[5]]['index']
 
+                # # Group data together
+                # hist_data = [x1]
 
-                # try it out with an other query : st.experimental_rerun()
+                # group_labels = [df['date'].unique()[0]]
+                # #, df['date'].unique()[1], df['date'].unique()[2],df['date'].unique()[3],df['date'].unique()[4],df['date'].unique()[5]
+
+                # # Create distplot with custom bin_size
+                # fig = ff.create_distplot(hist_data, group_labels, bin_size=0.15, curve_type='normal')
+
+                # # Plot!
+                # st.plotly_chart(fig, use_container_width=True)
