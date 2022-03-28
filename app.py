@@ -256,7 +256,7 @@ query_in= st.text_input('Insira abaixo a sua pesquisa')
 
 week = st.checkbox("Incluir análise de amostras dos 6 dias anteriores (demandará mais tempo)")
 query = None
-
+# Add comentário
 if (query_in != ""):
     try :
         query = analyse_query(query_in)
