@@ -188,6 +188,7 @@ def week_analyse(query, max_results=20):
     colors = ["#ed6a5a","#eb6565",'#c24747',"#da3030","#ff2a00","#FF0101"]
     fig, ax = plt.subplots(figsize=(27,5))
     for i,date,color in zip(range(7), df.date.unique(),colors):
+        sns.set(font_scale=1.6)
         plt.subplot(1,6,i+1)
         sentiment_day = df[df['date'] == date]['index']
         sns.histplot(sentiment_day, color=color, binwidth=0.4)
@@ -215,7 +216,6 @@ if (query_in != ""):
     if query != None :
         if week:
             base_analyse(query)
-
             st.markdown(''' _____________ ''')
             week_analyse(query)
         else :
