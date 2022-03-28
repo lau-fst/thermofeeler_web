@@ -140,7 +140,8 @@ if query_in != "" :
 
             st.write("Para acessar a análise da semana passada inteira, pressione o botão abaixo")
             if st.button("Aqui"):
-                url = f"https://thermofeeler-6hn6fqkota-uc.a.run.app/predict_week?query={query}&max_results=10"
+                max_results = 10
+                url = f"https://thermofeeler-6hn6fqkota-uc.a.run.app/predict_week?query={query}&max_results={max_results}"
                 tweets_week, predict_list = requests.get(url).json()
 
                 for index, value in enumerate(predict_list):
@@ -155,34 +156,37 @@ if query_in != "" :
                 df['date'] = pd.to_datetime(df[0], format='%Y-%m-%d').dt.strftime("%d/%m/%Y")
                 df = df.drop(columns=[0])
 
+                if max_results == 10 :
+                    y_ticks = [0,5,10]
+                elif max_results == 20 :
+                    y_ticks = [0,5,10,15,20]
+
                 colors = ["#20B2AA","#FF4040","#FFD700","#00CD00","#FF9912", "#FF1493"]
                 fig, ax = plt.subplots(figsize=(20,3))
                 for i,date,color in zip(range(7), df.date.unique(),colors):
                     plt.subplot(1,6,i+1)
                     sentiment_day = df[df['date'] == date]['index']
-                    sns.histplot(sentiment_day, color=color, kde=True)
+                    sns.histplot(sentiment_day, color=color)
                     plt.ylabel('')
                     plt.xlabel(date)
-                    plt.yticks([0,5,10])
+                    plt.yticks(y_ticks)
                     plt.xticks([-1,0,1])
 
                 st.pyplot(fig)
 
-                # x1 = df[df['date'] == df['date'].unique()[0]]['index']
-                # # x2 = df[df['date'] == df['date'].unique()[1]]['index']
-                # # x3 = df[df['date'] == df['date'].unique()[2]]['index']
-                # # x4 = df[df['date'] == df['date'].unique()[3]]['index']
-                # # x5 = df[df['date'] == df['date'].unique()[4]]['index']
-                # # x6 = df[df['date'] == df['date'].unique()[5]]['index']
+                # x1 = df[df['date'] == df['date'].unique()[0]]['index'].tolist()
+                # x2 = df[df['date'] == df['date'].unique()[1]]['index'].tolist()
+                # x3 = df[df['date'] == df['date'].unique()[2]]['index'].tolist()
+                # x4 = df[df['date'] == df['date'].unique()[3]]['index'].tolist()
+                # x5 = df[df['date'] == df['date'].unique()[4]]['index'].tolist()
+                # x6 = df[df['date'] == df['date'].unique()[5]]['index'].tolist()
 
-                # # Group data together
-                # hist_data = [x1]
 
-                # group_labels = [df['date'].unique()[0]]
-                # #, df['date'].unique()[1], df['date'].unique()[2],df['date'].unique()[3],df['date'].unique()[4],df['date'].unique()[5]
+                # hist_data = [x1,x2,x3,x4,x5,x6]
+                # group_labels = [df['date'].unique()[0],df['date'].unique()[1], df['date'].unique()[2],df['date'].unique()[3],df['date'].unique()[4],df['date'].unique()[5]]
 
-                # # Create distplot with custom bin_size
+                # # # Create distplot with custom bin_size
                 # fig = ff.create_distplot(hist_data, group_labels, bin_size=0.15, curve_type='normal')
 
-                # # Plot!
+                # # # Plot!
                 # st.plotly_chart(fig, use_container_width=True)
