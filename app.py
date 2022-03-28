@@ -13,7 +13,7 @@ st.set_page_config(page_title="ThermoFeeler", page_icon="🌡",
         layout="wide",
         initial_sidebar_state="auto")
 
-title = """<p style="font-family:'Tangerine'; color:Red; font-size:42px;">ThermoFeeler</p>"""
+title = """<p style="font-family:'Tangerine'; color:darkred; font-size:42px;">ThermoFeeler</p>"""
 
 st.markdown(title, unsafe_allow_html=True)
 
@@ -49,9 +49,9 @@ sidecol2.write('[Lauranne Fossat](https://github.com/lau-fst)')
 
 
 st.markdown("""Realize uma pesquisa no Twitter em português:""")
-query_in= st.text_input('Exemplo: Covid')
+query_in= st.text_input('Insira abaixo a sua pesquisa')
 
-if query_in != "" :
+if query_in != '':
     query_words = query_in.split(' ')
 
     if len(query_words) ==1:
@@ -88,7 +88,7 @@ if query_in != "" :
 
     if query != None :
         with st.spinner('Buscando os tweets...'):
-            url = f'https://thermofeeler-6hn6fqkota-uc.a.run.app/predict_query?query={query}&max_results=10'
+            url = f'https://thermofeeler-6hn6fqkota-uc.a.run.app/predict_query?query={query}&max_results=100'
             response= requests.get(url)
 
         if response.status_code != 200:
@@ -115,7 +115,7 @@ if query_in != "" :
                     'por','qual','quando','que','quem','se','seja','sejam','sejamos','sem','serei','seremos',
                     'seria','seriam','será','serão','seríamos','seu','seus','somos','sou','sua','suas','são',
                     'só','também','ah','q','g','oh','eh','vc','tbm','também','tambem','voceh','você','voce','rt',
-                    'é','n','não','nao','pro','pra','tá','ta']
+                    'é','n','não','nao','pro','pra','tá','ta','p']
 
                 tweet = tweet.lower() # lowercase
 
@@ -153,25 +153,43 @@ if query_in != "" :
                          size=20,y=1.08)
             plt.tight_layout(pad=60)
 
-            ax1.set_title(f"Distribuição de sentimentos",loc='center',size=16,pad=10)
+            ax1.set_title(f"Distribuição de sentimentos",loc='center',size=16,pad=15)
 
             ax1.pie([response[-1]['negative total'],response[-1]['positive total'],response[-1]['neutral total']],
                     explode=[0.05,0.05,0.05],
                     labels=['Negativo','Positivo','Neutro'],
-                    colors=['darkred','lightgreen','lightgray'],
+                    colors=['#E13B17','limegreen','lightgray'],
                     autopct='%1.1f%%',
                     textprops={'fontsize':14})
 
 
-            ax2.set_title(f"Dispositivos mais utilizados",loc='center',size=16,pad=10)
+            ax2.set_title(f"Dispositivos mais utilizados",loc='center',size=16,pad=15)
 
-            ax2.pie([response[-1]['negative total'],response[-1]['positive total'],response[-1]['neutral total']],
-                    explode=[0.05,0.05,0.05],
-                    labels=['Negativo','Positivo','Neutro'],
-                    colors=['darkred','lightgreen','lightgray'],
+            source_list=[entry.replace('Twitter','').replace('for','').strip() for entry in response[0][3]]
+            count_list=[]
+            for entry in source_list:
+                count_list.append(1)
+            source_df=pd.DataFrame(pd.Series(count_list,index=source_list).groupby(level=0).count(),columns=['count'])
+
+            source_df['count']=source_df['count'].apply(lambda x: None if x < 3 else int(x))
+            source_df.dropna(inplace=True)
+
+            if (len(source_list)-source_df.sum()[0]) != 0:
+                other_df=pd.DataFrame([len(source_list)-source_df.sum()[0]],columns=['count'],index=['Outros'])
+                source_df=pd.concat([source_df,other_df])
+
+            explode_list=[]
+            for i in range(source_df.shape[0]):
+                explode_list.append(0.05)
+
+            ax2.pie(source_df['count'],
+                    explode=explode_list,
+                    labels=source_df.index,
                     autopct='%1.1f%%',
                     textprops={'fontsize':14})
 
+            my_circle=plt.Circle((0,0), 0.82, color='white')
+            ax2.add_patch(my_circle)
             st.pyplot(fig)
 
             fig, ax = plt.subplots(figsize=(10,3))
@@ -180,7 +198,7 @@ if query_in != "" :
 
             # set width and height to higher quality, 3000 x 2000
             wordcloud = WordCloud(background_color="white",colormap="Blues",
-                                  width=600,height=130).generate(string)
+                                  width=600,height=200).generate(string)
 
 
             # set the word color to black
@@ -194,24 +212,7 @@ if query_in != "" :
             plt.margins(x=0, y=0)
             st.pyplot(fig)
 
-            st.write("Para acessar a análise da semana passada inteira, pressione o botão abaixo")
-            if st.button("Aqui"):
-                url = f"https://thermofeeler-6hn6fqkota-uc.a.run.app/predict_week?{query}=apple&max_results=20"
-                response_week = requests.get(url)
 
-                df = pd.DataFrame(response_week[0][2],response_week[1]).reset_index()
-                df['date'] = df[0].dt.strftime("%d/%m/%Y")
-                df = df.drop(columns=[0])
-
-                colors = ["#20B2AA","#FF4040","#FFD700","#00CD00","#FF9912", "#FF1493"]
-                fig, ax = plt.subplots(figsize=(20,3))
-                for i,date,color in zip(range(7), df.date.unique(),colors):
-                    plt.subplot(1,6,i+1)
-                    sentiment_day = df[df['date'] == date]['index']
-                    sns.histplot(sentiment_day, color=color, kde=True)
-                    plt.ylabel('')
-                    plt.xlabel(date)
-                    plt.yticks([0,5,10,15,20])
-                    plt.xticks([-1,0,1])
-
-                st.pyplot(fig)
+        st.write("Para acessar uma amostra dos seis últimos dias, pressione o botão abaixo")
+        if st.button("Gerar amostras"):
+            st.markdown('Botão funciona!')
