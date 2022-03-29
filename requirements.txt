@@ -8,3 +8,7 @@ requests
 matplotlib
 wordcloud
 nltk
+seaborn
+plotly
+
+click==8.0.4
