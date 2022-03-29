@@ -126,7 +126,7 @@ def base_analyse(query,max_results=100):
     else :
         response = response.json()
         col1, col2, col3, col4 = st.columns(4)
-        col1.write(f"Total de tweets obitidos: {response[-1]['total']}")
+        col1.write(f"Total de tweets obtidos: {response[-1]['total']}")
         col2.write(f"Total de tweets negativos: {response[-1]['negative total']}")
         col3.write(f"Total de tweets neutros: {response[-1]['neutral total']}")
         col4.write(f"Total de tweets positivos: {response[-1]['positive total']}")
