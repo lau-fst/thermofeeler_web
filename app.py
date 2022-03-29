@@ -15,7 +15,7 @@ st.set_page_config(page_title="ThermoFeeler", page_icon="🌡",
         layout="wide",
         initial_sidebar_state="auto")
 
-st.image("/Users/laurannefossat/Pictures/Thermofeeler.png", width=500)
+st.image("Thermofeeler.png", width=500)
 
 st.sidebar.markdown("""
     # Sobre
