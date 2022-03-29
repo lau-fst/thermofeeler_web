@@ -15,9 +15,7 @@ st.set_page_config(page_title="ThermoFeeler", page_icon="🌡",
         layout="wide",
         initial_sidebar_state="auto")
 
-title = """<p style="font-family:'Tangerine'; color:darkred; font-size:60px;">ThermoFeeler</p>"""
-
-st.markdown(title, unsafe_allow_html=True)
+st.image("/Users/laurannefossat/Pictures/Thermofeeler.png", width=500)
 
 st.sidebar.markdown("""
     # Sobre
@@ -209,47 +207,52 @@ def base_analyse(query,max_results=100):
         plt.margins(x=0, y=0)
         graph2=st.pyplot(fig)
 
-
-    return graph1, graph2
+        return graph1, graph2
 
 def week_analyse(query, max_results=100):
     query_2 = query
     url_2 = f"https://thermofeeler-6hn6fqkota-uc.a.run.app/predict_week?query={query_2}&max_results={max_results}"
-    tweets_week, predict_list = requests.get(url_2).json()
+    response = requests.get(url_2)
 
-    for index, value in enumerate(predict_list):
-        if value == 0:
-            predict_list[index] = -1
-        elif value == 1:
-            predict_list[index] = 0
-        elif value == 2:
-            predict_list[index] = 1
+    if response.status_code != 200:
+        st.error("Não encontramos dados suficientes nos ultimos seis dias para essa busca.")
+    else :
 
-    df = pd.DataFrame(tweets_week[2],predict_list).reset_index()
-    df['date'] = pd.to_datetime(df[0], format='%Y-%m-%d').dt.strftime("%d/%m/%Y")
-    df = df.drop(columns=[0])
+        tweets_week, predict_list = response.json()
 
-    if max_results == 10 or max_results == 20:
-        y_ticks = [x for x in np.arange(0,max_results+1,5)]
-    if max_results == 100:
-        y_ticks = [x for x in np.arange(0,71,10)]
+        for index, value in enumerate(predict_list):
+            if value == 0:
+                predict_list[index] = -1
+            elif value == 1:
+                predict_list[index] = 0
+            elif value == 2:
+                predict_list[index] = 1
+
+        df = pd.DataFrame(tweets_week[2],predict_list).reset_index()
+        df['date'] = pd.to_datetime(df[0], format='%Y-%m-%d').dt.strftime("%d/%m/%Y")
+        df = df.drop(columns=[0])
+
+        if max_results == 10 or max_results == 20:
+            y_ticks = [x for x in np.arange(0,max_results+1,5)]
+        if max_results == 100:
+            y_ticks = [x for x in np.arange(0,71,10)]
 
 
-    colors = ["#ed6a5a","#eb6565",'#c24747',"#da3030","#ff2a00","#FF0101"]
-    fig, ax = plt.subplots(figsize=(27,5))
-    for i,date,color in zip(range(7), df.date.unique(),colors):
-        plt.subplot(1,6,i+1)
-        sentiment_day = df[df['date'] == date]['index']
-        sns.histplot(sentiment_day, color=color, binwidth=0.4)
-        plt.ylabel('')
-        plt.xlabel(date, fontsize=25, labelpad=8)
-        plt.yticks(y_ticks)
-        plt.xticks([-.8,0,.8],labels=['Negativo','Neutro','Positivo'])
-        plt.xlim(-1.3, 1.3)
+        colors = ["#ed6a5a","#eb6565",'#c24747',"#da3030","#ff2a00","#FF0101"]
+        fig, ax = plt.subplots(figsize=(27,5))
+        for i,date,color in zip(range(7), df.date.unique(),colors):
+            plt.subplot(1,6,i+1)
+            sentiment_day = df[df['date'] == date]['index']
+            sns.histplot(sentiment_day, color=color, binwidth=0.4)
+            plt.ylabel('')
+            plt.xlabel(date, fontsize=25, labelpad=8)
+            plt.yticks(y_ticks)
+            plt.xticks([-.8,0,.8],labels=['Negativo','Neutro','Positivo'])
+            plt.xlim(-1.3, 1.3)
 
-    graph3 = st.pyplot(fig)
+        graph3 = st.pyplot(fig)
 
-    return graph3
+        return graph3
 
 st.markdown("""Realize uma pesquisa no Twitter em português:""")
 query_in= st.text_input('Insira abaixo a sua pesquisa')
@@ -264,9 +267,11 @@ if (query_in != ""):
         pass
     if query != None :
         if week:
-            base_analyse(query)
-
-            st.markdown(''' _____________ ''')
-            week_analyse(query)
+            try :
+                base_analyse(query)
+                st.markdown(''' _____________ ''')
+                week_analyse(query)
+            except:
+                st.error("Não encontramos dados suficientes nos ultimos seis dias para essa busca.")
         else :
             base_analyse(query)
